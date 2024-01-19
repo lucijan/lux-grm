@@ -35,7 +35,12 @@ function activate(context) {
 		console.log(text);
 		editor.edit(editBuilder => {
 			const pos = new vscode.Position(insertLineIndex, 0);
-			editBuilder.insert(pos, "\n#include \"juce_grm/debug.h\"\n");
+
+			if (document.fileName.includes("juce_grm")) {
+				editBuilder.insert(pos, "\n#include \"debug.h\"\n");
+			} else {
+				editBuilder.insert(pos, "\n#include \"juce_grm/debug.h\"\n");
+			}
 		});
 	});
 
