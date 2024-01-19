@@ -3,6 +3,10 @@
   "displayName": "LuX-GRM",
   "description": "Luci's GRM Extension",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lucijan/lux-grm.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
