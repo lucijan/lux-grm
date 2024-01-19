@@ -10,18 +10,33 @@ const vscode = require('vscode');
  */
 function activate(context) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "lux-grm" is now active!');
+	let disposable = vscode.commands.registerCommand('lux-grm.insertDebugInclude', function () {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) return;
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('lux-grm.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
+		const document = editor.document;
+		var text = document.getText();
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from LuX-GRM!');
+		var insertLineIndex = -1;
+
+		for(var lineIndex = document.lineCount - 1; lineIndex != 0; lineIndex--) {
+			const line = document.lineAt(lineIndex);
+			if (line.text.startsWith("#include")) {
+				insertLineIndex = lineIndex + 1;
+				break;
+			}
+		}
+
+		if (insertLineIndex == -1) {
+			vscode.window.showInformationMessage('No includes found!');
+			return;
+		}
+
+		console.log(text);
+		editor.edit(editBuilder => {
+			const pos = new vscode.Position(insertLineIndex, 0);
+			editBuilder.insert(pos, "\n#include \"juce_grm/debug.h\"\n");
+		});
 	});
 
 	context.subscriptions.push(disposable);

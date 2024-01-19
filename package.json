@@ -13,8 +13,8 @@
   "main": "./extension.js",
   "contributes": {
     "commands": [{
-      "command": "lux-grm.helloWorld",
-      "title": "Hello World"
+      "command": "lux-grm.insertDebugInclude",
+      "title": "Insert debug.h include"
     }]
   },
   "scripts": {
