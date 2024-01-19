@@ -28,7 +28,7 @@ function activate(context) {
 		}
 
 		if (insertLineIndex == -1) {
-			vscode.window.showInformationMessage('No includes found!');
+			vscode.window.showWarningMessage('No includes found!');
 			return;
 		}
 
