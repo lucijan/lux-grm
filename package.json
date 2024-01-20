@@ -20,7 +20,17 @@
     "commands": [{
       "command": "lux-grm.insertDebugInclude",
       "title": "Insert debug.h include"
-    }]
+    }, {
+      "command": "lux-grm.createClass",
+      "title": "Create New Class..."
+    }],
+    "menus": {
+      "explorer/context": [{
+        "command": "lux-grm.createClass",
+        "when": "explorerResourceIsFolder",
+        "group": "navigation"
+        }]
+    }
   },
   "scripts": {
     "lint": "eslint .",

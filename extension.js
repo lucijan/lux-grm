@@ -10,7 +10,7 @@ const vscode = require('vscode');
  */
 function activate(context) {
 
-	let disposable = vscode.commands.registerCommand('lux-grm.insertDebugInclude', function () {
+	context.subscriptions.push(vscode.commands.registerCommand('lux-grm.insertDebugInclude', function () {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) return;
 
@@ -42,9 +42,24 @@ function activate(context) {
 				editBuilder.insert(pos, "\n#include \"juce_grm/debug.h\"\n");
 			}
 		});
-	});
+	}));
 
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(vscode.commands.registerCommand('lux-grm.createClass', function (arg) {
+		console.log("lux-grm.createClass");
+		if (arg === undefined || arg.path == undefined) return;
+
+		console.log(arg.path);
+
+		vscode.window.showInputBox({prompt: "Class Name"}).then(
+			className => {
+				if (className == undefined) return;
+
+				console.log("class name: " + className + " in: " + arg.path);
+			}
+		);
+	
+		console.log("going on");
+	}));
 }
 
 // This method is called when your extension is deactivated
