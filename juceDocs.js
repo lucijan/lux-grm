@@ -6,4 +6,18 @@ function getPickList(context) {
   return JSON.parse(fs.readFileSync(path));
 }
 
-module.exports = {getPickList};
+function showQuickPick(context) {
+  console.log(context);
+  const quickPick = vscode.window.createQuickPick();
+  quickPick.items = getPickList(context);
+  quickPick.onDidChangeSelection(selection => {
+    if (selection[0]) {
+      vscode.env.openExternal(vscode.Uri.parse(selection[0].url));
+      quickPick.dispose();
+    }
+  });
+  quickPick.onDidHide(() => quickPick.dispose());
+  quickPick.show();
+}
+
+module.exports = {showQuickPick};

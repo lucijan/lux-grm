@@ -45,22 +45,9 @@ function activate(context) {
 		});
 	});
 
-	let browseJuceDocs = vscode.commands.registerCommand('lux-grm.browseJuceDocs', function () {
-		const quickPick = vscode.window.createQuickPick();
-		quickPick.items = juceDocs.getPickList(context);
-		quickPick.onDidChangeSelection(selection => {
-			console.log(selection);
-			if (selection[0]) {
-				vscode.env.openExternal(vscode.Uri.parse(selection[0].url));
-				quickPick.dispose();
-			}
-		});
-		quickPick.onDidHide(() => quickPick.dispose());
-		quickPick.show();
-	});
-
 	context.subscriptions.push(debugInclude);
-	context.subscriptions.push(browseJuceDocs);
+	context.subscriptions.push(vscode.commands.registerCommand('lux-grm.browseJuceDocs',
+		function () { juceDocs.showQuickPick(context); }));
 }
 
 // This method is called when your extension is deactivated
