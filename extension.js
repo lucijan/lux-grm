@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
+const juceDocs = require('./juceDocs');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -10,7 +11,7 @@ const vscode = require('vscode');
  */
 function activate(context) {
 
-	let disposable = vscode.commands.registerCommand('lux-grm.insertDebugInclude', function () {
+	let debugInclude = vscode.commands.registerCommand('lux-grm.insertDebugInclude', function () {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) return;
 
@@ -44,7 +45,22 @@ function activate(context) {
 		});
 	});
 
-	context.subscriptions.push(disposable);
+	let browseJuceDocs = vscode.commands.registerCommand('lux-grm.browseJuceDocs', function () {
+		const quickPick = vscode.window.createQuickPick();
+		quickPick.items = juceDocs.getPickList(context);
+		quickPick.onDidChangeSelection(selection => {
+			console.log(selection);
+			if (selection[0]) {
+				vscode.env.openExternal(vscode.Uri.parse(selection[0].url));
+				quickPick.dispose();
+			}
+		});
+		quickPick.onDidHide(() => quickPick.dispose());
+		quickPick.show();
+	});
+
+	context.subscriptions.push(debugInclude);
+	context.subscriptions.push(browseJuceDocs);
 }
 
 // This method is called when your extension is deactivated
