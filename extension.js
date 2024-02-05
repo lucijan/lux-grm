@@ -20,7 +20,7 @@ function activate(context) {
 		function () { juceDocs.showQuickPick(context); }));
 
 	context.subscriptions.push(vscode.commands.registerCommand('lux-grm.createClass',
-		function (arg) { createClass.showPopoup(arg);	}));
+		function (arg) { createClass.showPopoup(context, arg);	}));
 }
 
 // This method is called when your extension is deactivated
