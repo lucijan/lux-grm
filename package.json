@@ -17,24 +17,28 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "lux-grm.insertDebugInclude",
-      "title": "Insert debug.h include"
-    },
-    {
-      "command": "lux-grm.browseJuceDocs",
-      "title": "Browse JUCE documentation"
-    },
-    {
-      "command": "lux-grm.createClass",
-      "title": "Create New Class..."
-    }],
-    "menus": {
-      "explorer/context": [{
+    "commands": [
+      {
+        "command": "lux-grm.insertDebugInclude",
+        "title": "Insert debug.h include"
+      },
+      {
+        "command": "lux-grm.browseJuceDocs",
+        "title": "Browse JUCE documentation"
+      },
+      {
         "command": "lux-grm.createClass",
-        "when": "explorerResourceIsFolder",
-        "group": "navigation"
-        }]
+        "title": "Create New Class..."
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "lux-grm.createClass",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation"
+        }
+      ]
     }
   },
   "scripts": {
@@ -52,6 +56,8 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "fast-xml-parser": "^4.3.4"
+    "fast-xml-parser": "^4.3.4",
+    "liquid": "^5.1.1",
+    "path": "^0.12.7"
   }
 }
