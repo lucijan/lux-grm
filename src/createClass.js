@@ -3,7 +3,6 @@ const path = require('node:path');
 const liquid = require('liquid');
 const fs = require("fs");
 const cp = require('child_process');
-// const { GitExtension, Repository } = require('git');
 
 const grmNamespace = ['libgrm', 'juce_grm', 'common'];
 
@@ -20,51 +19,45 @@ function camelToSnakeCase(str) {
   return str.split(/(?=[A-Z])/).join('_').toLowerCase();
 }
 
-function renderTemplate(templatePath, fields) {
+async function renderTemplate(templatePath, fields) {
   const template = String(fs.readFileSync(templatePath));
   const engine = new liquid.Engine();
-  return engine.parseAndRender(template, fields);
+  return await engine.parseAndRender(template, fields);
 }
 
-function showPopoup(context, arg) {
+async function showPopoup(context, arg) {
   console.log("lux-grm.createClass");
   if (arg === undefined || arg.path == undefined) return;
 
-  vscode.window.showInputBox({ placeHolder: "ClassName", prompt: "Add .h to generate header only", }).then(
-    className => {
-      if (className == undefined) return;
+  var className = await vscode.window.showInputBox({
+    placeHolder: "ClassName",
+    prompt: "Add .h to generate header only",
+  });
+  if (className == undefined) return;
 
-      console.log("class name: " + className + " in: " + arg.path);
-      let targetDir = path.parse(arg.path);
-      var generateCpp = true;
-      if (className.endsWith('.h')) {
-        generateCpp = false;
-        className = className.replace('.h', '');
-      }
+  console.log("class name: " + className + " in: " + arg.path);
+  let targetDir = path.parse(arg.path);
+  var generateCpp = true;
+  if (className.endsWith('.h')) {
+    generateCpp = false;
+    className = className.replace('.h', '');
+  }
 
-      var root = findRoot(String(arg.path));
-      let date = new Date();
-      let fileName = camelToSnakeCase(className);
+  var root = findRoot(String(arg.path));
+  let date = new Date();
+  let fileName = camelToSnakeCase(className);
 
-      let fields = {
-        namespace: grmNamespace.includes(targetDir.name) ? 'grm' : targetDir.name,
-        className: className,
-        fileName: fileName,
-        date: date.toISOString().split('T')[0],
-        name: String(cp.execSync("git config --get user.name", {cwd: root})).trim(),
-        email: String(cp.execSync("git config --get user.email", {cwd: root})).trim()
-      };
+  let fields = {
+    namespace: grmNamespace.includes(targetDir.name) ? 'grm' : targetDir.name,
+    className: className,
+    fileName: fileName,
+    date: date.toISOString().split('T')[0],
+    name: String(cp.execSync("git config --get user.name", { cwd: root })).trim(),
+    email: String(cp.execSync("git config --get user.email", { cwd: root })).trim()
+  };
 
-      console.log(fields);
+  var header = await renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields);
+  fs.writeFileSync(path.join(arg.path, fileName + ".h"), header);
+}
 
-      renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields)
-        .then((headerContent) => {
-          fs.writeFileSync(path.join(arg.path, fileName + ".h"), headerContent);
-        });
-    }
-  );
-
-  console.log("going on");
-};
-
-module.exports = {showPopoup};
+module.exports = { showPopoup };
