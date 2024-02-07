@@ -44,20 +44,19 @@ async function showPopoup(context, arg) {
   }
 
   var root = findRoot(String(arg.path));
-  let date = new Date();
   let fileName = camelToSnakeCase(className);
 
   let fields = {
     namespace: grmNamespace.includes(targetDir.name) ? 'grm' : targetDir.name,
     className: className,
     fileName: fileName,
-    date: date.toISOString().split('T')[0],
     name: String(cp.execSync("git config --get user.name", { cwd: root })).trim(),
     email: String(cp.execSync("git config --get user.email", { cwd: root })).trim()
   };
 
-  var header = await renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields);
-  fs.writeFileSync(path.join(arg.path, fileName + ".h"), header);
+  const header = await renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields);
+  console.warn(header);
+  // fs.writeFileSync(path.join(arg.path, fileName + ".h"), header);
 }
 
 module.exports = { showPopoup };
