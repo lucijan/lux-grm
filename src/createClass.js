@@ -133,14 +133,22 @@ async function showPopoup(context, arg) {
     }
 
     const cppFileName = fileName + ".cpp";
+    const cppPath = path.join(arg.path, cppFileName);
     appendToCmake(cmakeFile, target, cppFileName);
 
     const impl = await renderTemplate(context.asAbsolutePath("create-class/template.cpp.liquid"), fields);
-    fs.writeFileSync(path.join(arg.path, cppFileName), impl);
+    fs.writeFileSync(cppPath, impl);
+
+    vscode.workspace.openTextDocument(cppPath)
+      .then(doc => vscode.window.showTextDocument(doc, 1, false));
   }
 
+  const headerPath = path.join(arg.path, fileName + ".h");
   const header = await renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields);
-  fs.writeFileSync(path.join(arg.path, fileName + ".h"), header);
+  fs.writeFileSync(headerPath, header);
+
+  vscode.workspace.openTextDocument(headerPath)
+    .then(doc => vscode.window.showTextDocument(doc, 1, false));
 }
 
 module.exports = { showPopoup };
