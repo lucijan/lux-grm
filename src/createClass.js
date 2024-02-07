@@ -24,6 +24,7 @@ async function parseTargets(cmakeFile) {
 
   const fh = await fs.promises.open(cmakeFile);
   var lineNo = 0;
+  var indentation = 0;
   var targets = new Array();
   var currentTarget = undefined;
 
@@ -37,14 +38,43 @@ async function parseTargets(cmakeFile) {
 
     if (currentTarget && tokens[0] == ')') {
       currentTarget['lastLine'] = lineNo;
+      currentTarget['indentation'] = indentation;
       targets.push(currentTarget);
       currentTarget = undefined;
     }
 
     lineNo++;
+    const whitespace = line.match(/^\s+/);
+    if (whitespace) indentation = whitespace[0];
   }
 
   return targets;
+}
+
+async function appendToCmake(cmakeFile, target, cppFile) {
+  const fh = await fs.promises.open(cmakeFile, 'a+');
+  const res = await fh.read();
+
+  var endline = "\n";
+  var line = 0;
+  for (var i = 0; i < res.bytesRead; i++) {
+    if (res.buffer[i] == 10) {
+      if (res.buffer[i - 1] == 13) endline = "\r\n";
+      line++;
+
+      if (line == target.lastLine) {
+        const insertBuf = Buffer.from(endline + target.indentation + cppFile);
+        await fh.write(insertBuf, 0, insertBuf.length, i);
+
+        // append the rest of the file
+        await fh.write(res.buffer, i, res.bytesRead - i, i + insertBuf.length);
+        await fh.close();
+        return;
+      }
+    }
+  }
+
+  await fh.close();
 }
 
 async function renderTemplate(templatePath, fields) {
@@ -57,7 +87,8 @@ async function showPopoup(context, arg) {
   console.log("lux-grm.createClass");
   if (arg === undefined || arg.path == undefined) return;
 
-  const targets = await parseTargets(path.join(arg.path, "CMakeLists.txt"));
+  const cmakeFile = path.join(arg.path, "CMakeLists.txt");
+  const targets = await parseTargets(cmakeFile);
   if (targets.length < 1) {
     vscode.window.showErrorMessage('No suitable targets found!');
     return;
@@ -88,15 +119,24 @@ async function showPopoup(context, arg) {
     email: String(cp.execSync("git config --get user.email", { cwd: root })).trim()
   };
 
-  var target = targets[0];
-  if (generateCpp && targets.length > 1) {
-    const pick = await vscode.window.showQuickPick(targets.map(target => target.name),
-      {title: "Target"});
-    if (pick == undefined) return;
+  if (generateCpp) {
+    var target = targets[0];
 
-    for (const t of targets) {
-      if (t.name == pick) target = t;
+    if (targets.length > 1) {
+      const pick = await vscode.window.showQuickPick(targets.map(target => target.name),
+        { title: "Target" });
+      if (pick == undefined) return;
+
+      for (const t of targets) {
+        if (t.name == pick) target = t;
+      }
     }
+
+    const cppFileName = fileName + ".cpp";
+    const cppPath = path.join(arg.path, cppFileName);
+
+
+    appendToCmake(cmakeFile, target, cppFileName);
   }
 
   const header = await renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields);
