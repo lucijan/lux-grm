@@ -1,9 +1,7 @@
 # Change Log
 
-All notable changes to the "lux-grm" extension will be documented in this file.
+## 0.0.3
+- Add create class
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+## 0.0.2
+- Add Browse JUCE documentation
