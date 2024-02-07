@@ -52,14 +52,14 @@ async function parseTargets(cmakeFile) {
 }
 
 async function appendToCmake(cmakeFile, target, cppFile) {
+  const buf = await fs.promises.readFile(cmakeFile);
   const fh = await fs.promises.open(cmakeFile, 'a+');
-  const res = await fh.read();
 
   var endline = "\n";
   var line = 0;
-  for (var i = 0; i < res.bytesRead; i++) {
-    if (res.buffer[i] == 10) {
-      if (res.buffer[i - 1] == 13) endline = "\r\n";
+  for (var i = 0; i < buf.length; i++) {
+    if (buf[i] == 10) {
+      if (buf[i - 1] == 13) endline = "\r\n";
       line++;
 
       if (line == target.lastLine) {
@@ -67,7 +67,7 @@ async function appendToCmake(cmakeFile, target, cppFile) {
         await fh.write(insertBuf, 0, insertBuf.length, i);
 
         // append the rest of the file
-        await fh.write(res.buffer, i, res.bytesRead - i, i + insertBuf.length);
+        await fh.write(buf, i, buf.length - i, i + insertBuf.length);
         await fh.close();
         return;
       }
