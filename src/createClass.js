@@ -19,6 +19,34 @@ function camelToSnakeCase(str) {
   return str.split(/(?=[A-Z])/).join('_').toLowerCase();
 }
 
+async function parseTargets(cmakeFile) {
+  if (!fs.existsSync(cmakeFile)) return [];
+
+  const fh = await fs.promises.open(cmakeFile);
+  var lineNo = 0;
+  var targets = new Array();
+  var currentTarget = undefined;
+
+  for await (const line of fh.readLines()) {
+    const tokens = line.trim().split(/[ \(]/);
+    if (tokens.length >= 2 &&
+      (tokens[0] == 'target_sources' || tokens[0] == 'add_library')) {
+      // don't attempt to append to empty add_library
+      if (!tokens[1].endsWith(')')) currentTarget = {name: tokens[1]};
+    }
+
+    if (currentTarget && tokens[0] == ')') {
+      currentTarget['lastLine'] = lineNo;
+      targets.push(currentTarget);
+      currentTarget = undefined;
+    }
+
+    lineNo++;
+  }
+
+  return targets;
+}
+
 async function renderTemplate(templatePath, fields) {
   const template = String(fs.readFileSync(templatePath));
   const engine = new liquid.Engine();
@@ -28,6 +56,12 @@ async function renderTemplate(templatePath, fields) {
 async function showPopoup(context, arg) {
   console.log("lux-grm.createClass");
   if (arg === undefined || arg.path == undefined) return;
+
+  const targets = await parseTargets(path.join(arg.path, "CMakeLists.txt"));
+  if (targets.length < 1) {
+    vscode.window.showErrorMessage('No suitable targets found!');
+    return;
+  }
 
   var className = await vscode.window.showInputBox({
     placeHolder: "ClassName",
