@@ -133,14 +133,14 @@ async function showPopoup(context, arg) {
     }
 
     const cppFileName = fileName + ".cpp";
-    const cppPath = path.join(arg.path, cppFileName);
-
-
     appendToCmake(cmakeFile, target, cppFileName);
+
+    const impl = await renderTemplate(context.asAbsolutePath("create-class/template.cpp.liquid"), fields);
+    fs.writeFileSync(path.join(arg.path, cppFileName), impl);
   }
 
   const header = await renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields);
-  // fs.writeFileSync(path.join(arg.path, fileName + ".h"), header);
+  fs.writeFileSync(path.join(arg.path, fileName + ".h"), header);
 }
 
 module.exports = { showPopoup };
