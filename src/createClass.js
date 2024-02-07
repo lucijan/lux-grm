@@ -88,8 +88,18 @@ async function showPopoup(context, arg) {
     email: String(cp.execSync("git config --get user.email", { cwd: root })).trim()
   };
 
+  var target = targets[0];
+  if (generateCpp && targets.length > 1) {
+    const pick = await vscode.window.showQuickPick(targets.map(target => target.name),
+      {title: "Target"});
+    if (pick == undefined) return;
+
+    for (const t of targets) {
+      if (t.name == pick) target = t;
+    }
+  }
+
   const header = await renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields);
-  console.warn(header);
   // fs.writeFileSync(path.join(arg.path, fileName + ".h"), header);
 }
 
