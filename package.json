@@ -2,7 +2,7 @@
   "name": "lux-grm",
   "displayName": "LuX-GRM",
   "description": "Luci's GRM Extension",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "lucijan",
   "repository": {
     "type": "git",
