@@ -4,7 +4,7 @@ const liquid = require('liquid');
 const fs = require("fs");
 const cp = require('child_process');
 
-const grmNamespace = ['libgrm', 'juce_grm', 'common'];
+const grmNamespace = ['libgrm', 'juce_grm'];
 
 function findRoot(cwd) {
   if (fs.existsSync(path.join(cwd, ".git"))) return cwd;
