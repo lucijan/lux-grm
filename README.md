@@ -5,6 +5,9 @@ Luzie's VS Code extension
 ## Command: Insert debug.h include
 Inserts `juce_grm/debug.h` at the end of the include block.
 
+## Command: Insert DBG_EXPR() here
+Wraps current selection into `DBG_EXPR()`
+
 ## Command: Browse JUCE documentation
 Brings up a quick pick panel to search for juce classes documentation.
 

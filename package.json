@@ -23,6 +23,10 @@
         "title": "Insert debug.h include"
       },
       {
+        "command": "lux-grm.insertDbgExpr",
+        "title": "Insert `DBG_EXPR()` here"
+      },
+      {
         "command": "lux-grm.browseJuceDocs",
         "title": "Browse JUCE documentation"
       },

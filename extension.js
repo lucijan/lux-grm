@@ -4,6 +4,7 @@ const vscode = require('vscode');
 const juceDocs = require('./src/juceDocs');
 const debugInclude = require('./src/debugInclude');
 const createClass = require('./src/createClass');
+const insertDbgExpr = require('./src/insertDbgExpr');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -15,6 +16,9 @@ function activate(context) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('lux-grm.insertDebugInclude',
 		debugInclude.addInclude));
+
+	context.subscriptions.push(vscode.commands.registerCommand('lux-grm.insertDbgExpr',
+    insertDbgExpr.insertDbgExpr));
 
 	context.subscriptions.push(vscode.commands.registerCommand('lux-grm.browseJuceDocs',
 		function () { juceDocs.showQuickPick(context); }));
