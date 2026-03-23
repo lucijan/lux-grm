@@ -33,14 +33,16 @@ async function parseTargets(cmakeFile) {
     if (tokens.length >= 2 &&
       (tokens[0] == 'target_sources' || tokens[0] == 'add_library')) {
       // don't attempt to append to empty add_library
-      if (!tokens[1].endsWith(')')) currentTarget = {name: tokens[1]};
-    }
-
-    if (currentTarget && tokens[0] == ')') {
-      currentTarget['lastLine'] = lineNo;
-      currentTarget['indentation'] = indentation;
-      targets.push(currentTarget);
-      currentTarget = undefined;
+      if (!tokens[1].endsWith(')')) currentTarget = {name: tokens[1], firstLine: lineNo, sources: []};
+    } else if (currentTarget) {
+      if (tokens[0] == ')') {
+        currentTarget['lastLine'] = lineNo;
+        currentTarget['indentation'] = indentation;
+        targets.push(currentTarget);
+        currentTarget = undefined;
+      } else {
+        currentTarget['sources'].push(tokens[0]);
+      }
     }
 
     lineNo++;
@@ -51,26 +53,37 @@ async function parseTargets(cmakeFile) {
   return targets;
 }
 
-async function appendToCmake(cmakeFile, target, cppFile) {
+async function appendToCmake(cmakeFile, target, headerFile, cppFile) {
   const buf = await fs.promises.readFile(cmakeFile);
-  const fh = await fs.promises.open(cmakeFile, 'a+');
+  const fh = await fs.promises.open(cmakeFile, 'w');
+
+  var sources = target.sources;
+
+  if (cppFile !== undefined && cppFile.length > 0) sources.push(cppFile);
+  sources.push(headerFile);
+  sources.sort();
 
   var endline = "\n";
   var line = 0;
   for (var i = 0; i < buf.length; i++) {
     if (buf[i] == 10) {
       if (buf[i - 1] == 13) endline = "\r\n";
-      line++;
 
-      if (line == target.lastLine) {
-        const insertBuf = Buffer.from(endline + target.indentation + cppFile);
-        await fh.write(insertBuf, 0, insertBuf.length, i);
-
+      if (line == target.firstLine) {
+        await fh.write(buf, 0, i + 1);  // write file till here
+        for (var sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
+          const insertBuf = Buffer.from(target.indentation + sources[sourceIndex]);
+          await fh.write(insertBuf, 0, insertBuf);
+          if (sourceIndex < sources.length - 1) fh.write(endline);
+        }
+      } else if (line == target.lastLine - 1) {
         // append the rest of the file
-        await fh.write(buf, i, buf.length - i, i + insertBuf.length);
+        await fh.write(buf, i, buf.length - i);
         await fh.close();
         return;
       }
+
+      line++;
     }
   }
 
@@ -119,22 +132,22 @@ async function showPopoup(context, arg) {
     email: String(cp.execSync("git config --get user.email", { cwd: root })).trim()
   };
 
-  if (generateCpp) {
-    var target = targets[0];
+  let cppFileName = "";
+  var target = targets[0];
 
-    if (targets.length > 1) {
-      const pick = await vscode.window.showQuickPick(targets.map(target => target.name),
-        { title: "Target" });
-      if (pick == undefined) return;
+  if (targets.length > 1) {
+    const pick = await vscode.window.showQuickPick(targets.map(target => target.name),
+      { title: "Target" });
+    if (pick == undefined) return;
 
-      for (const t of targets) {
-        if (t.name == pick) target = t;
-      }
+    for (const t of targets) {
+      if (t.name == pick) target = t;
     }
+  }
 
-    const cppFileName = fileName + ".cpp";
+  if (generateCpp) {
+    cppFileName = fileName + ".cpp";
     const cppPath = path.join(arg.path, cppFileName);
-    appendToCmake(cmakeFile, target, cppFileName);
 
     const impl = await renderTemplate(context.asAbsolutePath("create-class/template.cpp.liquid"), fields);
     fs.writeFileSync(cppPath, impl);
@@ -143,7 +156,10 @@ async function showPopoup(context, arg) {
       .then(doc => vscode.window.showTextDocument(doc, 1, false));
   }
 
-  const headerPath = path.join(arg.path, fileName + ".h");
+  const headerFileName = fileName + ".h";
+  appendToCmake(cmakeFile, target, headerFileName, cppFileName);
+
+  const headerPath = path.join(arg.path, headerFileName);
   const header = await renderTemplate(context.asAbsolutePath("create-class/template.h.liquid"), fields);
   fs.writeFileSync(headerPath, header);
 
